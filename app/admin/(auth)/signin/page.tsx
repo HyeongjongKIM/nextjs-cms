@@ -22,62 +22,39 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 
-const signupSchema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters long."),
-    email: z.string().email("Please enter a valid email address."),
-    password: z.string().min(6, "Password must be at least 6 characters long."),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
-    path: ["confirmPassword"],
-  });
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters long."),
+});
 
-type SignupFormValues = z.infer<typeof signupSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function Signup() {
-  const form = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
+export default function Login() {
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
-  function onSubmit(values: SignupFormValues) {
+  function onSubmit(values: LoginFormValues) {
     console.log(values);
-    // TODO: 회원가입 로직 구현
   }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          Sign Up
+          Sign In
         </CardTitle>
         <CardDescription className="text-center">
-          Create a new account
+          Sign in to your account
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="email"
@@ -104,28 +81,15 @@ export default function Signup() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <Button type="submit" className="w-full">
-              Sign Up
+              Sign In
             </Button>
           </form>
         </Form>
         <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
-          <Link href="/admin/signin" className="text-blue-600 hover:underline">
-            Sign in
+          Don&apos;t have an account?{" "}
+          <Link href="/admin/signup" className="text-blue-600 hover:underline">
+            Sign up
           </Link>
         </div>
       </CardContent>
