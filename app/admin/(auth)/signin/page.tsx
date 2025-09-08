@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,27 +19,37 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
+import { signinAction } from "./actions";
+import { SigninFormValues, signinSchema } from "@/features/auth/signin-schema";
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(6, "Password must be at least 6 characters long."),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-
-export default function Login() {
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+export default function Signin() {
+  const form = useForm<SigninFormValues>({
+    resolver: zodResolver(signinSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  function onSubmit(values: LoginFormValues) {
-    console.log(values);
-  }
+  const {
+    handleSubmit,
+    setError,
+    formState: { isSubmitting, errors },
+  } = form;
+
+  const onSubmit = handleSubmit(async (data: SigninFormValues) => {
+    const res = await signinAction(data);
+
+    if (!res.success || res.error) {
+      setError("root", {
+        message: res.error || "Something went wrong",
+      });
+    }
+  });
+
+  const onValid = async () => {
+    await onSubmit();
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -54,7 +63,7 @@ export default function Login() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form action={onValid} className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -62,7 +71,11 @@ export default function Login() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="your@email.com" {...field} />
+                    <Input
+                      placeholder="your@email.com"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -75,23 +88,31 @@ export default function Login() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button
+              type="submit"
+              className="w-full mt-4"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
+            {errors.root && (
+              <div className="text-sm text-red-600 rounded-md text-center">
+                {errors.root.message}
+              </div>
+            )}
           </form>
         </Form>
-        <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link href="/admin/signup" className="text-blue-600 hover:underline">
-            Sign up
-          </Link>
-        </div>
       </CardContent>
     </Card>
   );

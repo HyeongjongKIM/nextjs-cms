@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,25 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
-
-const signupSchema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters long."),
-    email: z.string().email("Please enter a valid email address."),
-    password: z.string().min(6, "Password must be at least 6 characters long."),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
-    path: ["confirmPassword"],
-  });
-
-type SignupFormValues = z.infer<typeof signupSchema>;
+import {
+  CreateUserFormValues,
+  createUserSchema,
+} from "@/features/user/user-schema";
+import { signupAction } from "./actions";
 
 export default function Signup() {
-  const form = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
+  const form = useForm<CreateUserFormValues>({
+    resolver: zodResolver(createUserSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -47,10 +36,25 @@ export default function Signup() {
     },
   });
 
-  function onSubmit(values: SignupFormValues) {
-    console.log(values);
-    // TODO: 회원가입 로직 구현
-  }
+  const {
+    handleSubmit,
+    setError,
+    formState: { isSubmitting, errors },
+  } = form;
+
+  const onSubmit = handleSubmit(async (data: CreateUserFormValues) => {
+    const res = await signupAction(data);
+
+    if (!res?.success || res?.error) {
+      setError("root", {
+        message: res?.error || "Something went wrong",
+      });
+    }
+  });
+
+  const onValid = async () => {
+    await onSubmit();
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -64,7 +68,7 @@ export default function Signup() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form action={onValid} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -72,7 +76,11 @@ export default function Signup() {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input
+                      placeholder="John Doe"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -85,7 +93,11 @@ export default function Signup() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="your@email.com" {...field} />
+                    <Input
+                      placeholder="your@email.com"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -98,7 +110,12 @@ export default function Signup() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -111,23 +128,31 @@ export default function Signup() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              Sign Up
+            <Button
+              type="submit"
+              className="w-full mt-4"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating account..." : "Sign Up"}
             </Button>
+            {errors.root && (
+              <div className="text-sm text-red-600 rounded-md text-center">
+                {errors.root.message}
+              </div>
+            )}
           </form>
         </Form>
-        <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
-          <Link href="/admin/signin" className="text-blue-600 hover:underline">
-            Sign in
-          </Link>
-        </div>
       </CardContent>
     </Card>
   );
