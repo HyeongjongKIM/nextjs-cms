@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -10,57 +10,57 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card'
 import {
   CreateUserFormValues,
   createUserSchema,
-} from "@/features/user/user-schema";
+} from '@/features/user/user-schema'
 
 interface SignupFormProps {
   signupAction: (data: CreateUserFormValues) => Promise<{
-    success: boolean;
-    error?: string;
-  }>;
+    success: boolean
+    error?: string
+  }>
 }
 
 function SignupForm({ signupAction }: SignupFormProps) {
   const form = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
-  });
+  })
 
   const {
     handleSubmit,
     setError,
     formState: { isSubmitting, errors },
-  } = form;
+  } = form
 
   const onSubmit = handleSubmit(async (data: CreateUserFormValues) => {
-    const res = await signupAction(data);
+    const res = await signupAction(data)
 
     if (!res?.success || res?.error) {
-      setError("root", {
-        message: res?.error || "Something went wrong",
-      });
+      setError('root', {
+        message: res?.error || 'Something went wrong',
+      })
     }
-  });
+  })
 
   const onValid = async () => {
-    await onSubmit();
-  };
+    await onSubmit()
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -150,7 +150,7 @@ function SignupForm({ signupAction }: SignupFormProps) {
               className="w-full mt-4"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Creating account..." : "Sign Up"}
+              {isSubmitting ? 'Creating account...' : 'Sign Up'}
             </Button>
             {errors.root && (
               <div className="text-sm text-red-600 rounded-md text-center">
@@ -161,7 +161,7 @@ function SignupForm({ signupAction }: SignupFormProps) {
         </Form>
       </CardContent>
     </Card>
-  );
+  )
 }
 
-export { SignupForm };
+export { SignupForm }

@@ -1,13 +1,13 @@
-import { ThemeProvider } from "@/components/admin/theme-provider";
+import { ThemeProvider } from '@/components/admin/theme-provider'
 
 export const metadata = {
   robots: { index: false, follow: false, nocache: true },
-};
+}
 
 export default function Layout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -22,5 +22,5 @@ export default function Layout({
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

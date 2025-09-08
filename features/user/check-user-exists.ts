@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma'
 
 async function checkUserExists() {
-  const user = await prisma.user.findFirst();
+  const user = await prisma.user.findFirst()
   if (user) {
-    return true;
+    return true
   }
-  return false;
+  return false
 }
 
-export { checkUserExists };
+export { checkUserExists }

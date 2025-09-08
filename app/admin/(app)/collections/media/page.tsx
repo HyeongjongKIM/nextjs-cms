@@ -1,3 +1,3 @@
 export default function Page() {
-  return <div>Media</div>;
+  return <div>Media</div>
 }

@@ -1,10 +1,10 @@
-"use server";
+'use server'
 
-import { SigninFormValues } from "@/features/auth/signin-schema";
-import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
-import bcrypt from "bcryptjs";
-import { redirect } from "next/navigation";
+import { SigninFormValues } from '@/features/auth/signin-schema'
+import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/session'
+import bcrypt from 'bcryptjs'
+import { redirect } from 'next/navigation'
 
 async function signinAction(params: SigninFormValues) {
   try {
@@ -16,30 +16,30 @@ async function signinAction(params: SigninFormValues) {
         id: true,
         password: true,
       },
-    });
+    })
 
     const isPasswordValid = await bcrypt.compare(
       params.password,
-      user?.password || ""
-    );
+      user?.password || ''
+    )
 
     if (!isPasswordValid || !user)
       return {
-        error: "Invalid email or password",
+        error: 'Invalid email or password',
         success: false,
-      };
+      }
 
-    const session = await getSession();
-    session.id = user.id;
-    await session.save();
+    const session = await getSession()
+    session.id = user.id
+    await session.save()
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error)
     return {
-      error: "Internal server error",
+      error: 'Internal server error',
       success: false,
-    };
+    }
   }
-  redirect("/admin/dashboard");
+  redirect('/admin/dashboard')
 }
 
-export { signinAction };
+export { signinAction }

@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -10,52 +10,52 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { SigninFormValues, signinSchema } from "@/features/auth/signin-schema";
+} from '@/components/ui/card'
+import { SigninFormValues, signinSchema } from '@/features/auth/signin-schema'
 
 interface LoginFormProps {
   signinAction: (data: SigninFormValues) => Promise<{
-    error: string;
-    success: boolean;
-  }>;
+    error: string
+    success: boolean
+  }>
 }
 
 function LoginForm({ signinAction }: LoginFormProps) {
   const form = useForm<SigninFormValues>({
     resolver: zodResolver(signinSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  });
+  })
 
   const {
     handleSubmit,
     setError,
     formState: { isSubmitting, errors },
-  } = form;
+  } = form
 
   const onSubmit = handleSubmit(async (data: SigninFormValues) => {
-    const res = await signinAction(data);
+    const res = await signinAction(data)
 
     if (!res.success || res.error) {
-      setError("root", {
-        message: res.error || "Something went wrong",
-      });
+      setError('root', {
+        message: res.error || 'Something went wrong',
+      })
     }
-  });
+  })
 
   const onValid = async () => {
-    await onSubmit();
-  };
+    await onSubmit()
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -110,7 +110,7 @@ function LoginForm({ signinAction }: LoginFormProps) {
               className="w-full mt-4"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
             </Button>
             {errors.root && (
               <div className="text-sm text-red-600 rounded-md text-center">
@@ -121,7 +121,7 @@ function LoginForm({ signinAction }: LoginFormProps) {
         </Form>
       </CardContent>
     </Card>
-  );
+  )
 }
 
-export { LoginForm };
+export { LoginForm }
