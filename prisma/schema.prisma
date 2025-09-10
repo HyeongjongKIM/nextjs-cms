@@ -6,6 +6,11 @@ generator client {
   output   = "../lib/generated/prisma"
 }
 
+generator zod {
+  provider = "zod-prisma-types"
+  output   = "../lib/generated/zod"
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -13,9 +18,9 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
+  name      String /// @zod.string.min(2, { message: 'Name must be at least 2 characters long' })
+  email     String   @unique /// @zod.string.email({ message: 'Please enter a valid email address' })
+  password  String /// @zod.string.min(6, { message: 'Password must be at least 6 characters long' })
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
