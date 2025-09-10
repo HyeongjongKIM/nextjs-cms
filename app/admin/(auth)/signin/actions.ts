@@ -1,45 +1,22 @@
 'use server'
 
 import { SigninFormValues } from '@/features/auth/signin-schema'
-import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/session'
-import bcrypt from 'bcryptjs'
+import { AuthService } from '@/features/auth/auth-service'
+import { SessionService } from '@/lib/session'
 import { redirect } from 'next/navigation'
 
 async function signinAction(params: SigninFormValues) {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email: params.email,
-      },
-      select: {
-        id: true,
-        password: true,
-      },
-    })
+  const result = await AuthService.login(params.email, params.password)
 
-    const isPasswordValid = await bcrypt.compare(
-      params.password,
-      user?.password || ''
-    )
-
-    if (!isPasswordValid || !user)
-      return {
-        error: 'Invalid email or password',
-        success: false,
-      }
-
-    const session = await getSession()
-    session.id = user.id
-    await session.save()
-  } catch (error) {
-    console.error('Login error:', error)
+  if (result.success) {
+    await SessionService.setSession(result.data.userId)
+    redirect('/admin/dashboard')
+  } else {
     return {
-      error: 'Internal server error',
       success: false,
+      error: result.error,
     }
   }
-  redirect('/admin/dashboard')
 }
 
 export { signinAction }

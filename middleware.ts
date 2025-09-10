@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from './lib/session'
+import { SessionService } from './lib/session'
 
 const publicOnlyUrls = ['/admin/signup', '/admin/signin']
 
 export async function middleware(request: NextRequest) {
-  const session = await getSession()
+  const session = await SessionService.getSession()
   const isUserLoggedIn = 'id' in session
   const isAdminRoot = request.nextUrl.pathname === '/admin'
   const isPublicOnlyUrl = publicOnlyUrls.includes(request.nextUrl.pathname)

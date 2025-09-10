@@ -1,21 +1,38 @@
 'use server'
 
-import { createUser } from '@/features/user/create-user'
-import { CreateUserFormValues } from '@/features/user/user-schema'
+import { UserService } from '@/features/user/user-service'
+import {
+  CreateUserFormValues,
+  createUserSchema,
+} from '@/features/user/user-schema'
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/session'
+import { SessionService } from '@/lib/session'
+import { z } from 'zod'
 
 async function signupAction(params: CreateUserFormValues) {
-  const res = await createUser(params)
+  // Validate data first
+  try {
+    createUserSchema.parse(params)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: 'Validation error',
+        details: error.issues,
+      }
+    }
+  }
 
-  if (res.success && res.user?.id) {
-    const session = await getSession()
+  const res = await UserService.create(params)
 
-    session.id = res.user.id
-    await session.save()
+  if (res.success) {
+    await SessionService.setSession(res.data.id)
     redirect('/admin/dashboard')
   } else {
-    return res
+    return {
+      success: false,
+      error: res.error,
+    }
   }
 }
 

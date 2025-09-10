@@ -1,11 +1,10 @@
 'use server'
 
-import { getSession } from '@/lib/session'
+import { SessionService } from '@/lib/session'
 import { redirect } from 'next/navigation'
 
 async function logoutAction() {
-  const session = await getSession()
-  session.destroy()
+  await SessionService.destroySession()
   redirect('/admin/signin')
 }
 
