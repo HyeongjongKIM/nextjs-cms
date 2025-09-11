@@ -74,4 +74,26 @@ export class UserService {
       return createError('Failed to find user by email')
     }
   }
+
+  static async findAll(): Promise<ApiResult<Omit<User, 'password'>[]>> {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+
+      return createSuccess(users)
+    } catch (error) {
+      console.error('Find all users error:', error)
+      return createError('Failed to fetch users')
+    }
+  }
 }

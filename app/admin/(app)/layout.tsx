@@ -114,7 +114,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <main className="flex flex-col h-full overflow-auto p-2">
+        <main className="container mx-auto px-4 py-8 space-y-6 h-full">
           {children}
         </main>
       </SidebarInset>
