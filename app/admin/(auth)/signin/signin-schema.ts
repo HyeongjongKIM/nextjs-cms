@@ -1,4 +1,4 @@
-import z from 'zod'
+import { z } from 'zod'
 
 const signinSchema = z.object({
   email: z.email('Please enter a valid email address'),

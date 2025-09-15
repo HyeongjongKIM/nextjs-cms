@@ -1,16 +1,12 @@
 'use server'
 
-import {
-  CreateUserFormValues,
-  createUserSchema,
-} from '@/app/admin/(app)/collections/users/user-schema'
-import { redirect } from 'next/navigation'
-import { SessionService } from '@/lib/session'
+import { CreateUserFormValues, createUserSchema } from './user-schema'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { hashPassword } from '@/lib/hash-password'
 
-async function signupAction(params: CreateUserFormValues) {
+export async function createUserAction(params: CreateUserFormValues) {
   const parsedResult = createUserSchema.safeParse(params)
 
   if (!parsedResult.success) {
@@ -36,26 +32,32 @@ async function signupAction(params: CreateUserFormValues) {
 
   const hashedPassword = await hashPassword(password)
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-    select: {
-      id: true,
-    },
-  })
+  try {
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+      },
+    })
 
-  if (user) {
-    await SessionService.setSession(user.id)
-    redirect('/admin/dashboard')
-  } else {
+    // Revalidate the users page to show the new user
+    revalidatePath('/admin/collections/users')
+
+    return {
+      success: true,
+      data: user,
+    }
+  } catch {
     return {
       success: false,
       error: 'Failed to create user',
     }
   }
 }
-
-export { signupAction }

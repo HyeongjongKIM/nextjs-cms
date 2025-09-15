@@ -1,5 +1,6 @@
 'use client'
 
+import { useTransition } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -19,16 +20,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { SigninFormValues, signinSchema } from '@/features/auth/signin-schema'
 
-interface LoginFormProps {
-  signinAction: (data: SigninFormValues) => Promise<{
-    error: string
-    success: boolean
-  }>
-}
+import { signinAction } from '@/app/admin/(auth)/signin/actions'
+import { SigninFormValues, signinSchema } from './signin-schema'
 
-function LoginForm({ signinAction }: LoginFormProps) {
+function SigninForm() {
+  const [isPending, startTransition] = useTransition()
+
   const form = useForm<SigninFormValues>({
     resolver: zodResolver(signinSchema),
     defaultValues: {
@@ -37,24 +35,26 @@ function LoginForm({ signinAction }: LoginFormProps) {
     },
   })
 
-  const {
-    handleSubmit,
-    setError,
-    formState: { isSubmitting, errors },
-  } = form
+  const onSubmit = (values: SigninFormValues) => {
+    startTransition(async () => {
+      const result = await signinAction(values)
 
-  const onSubmit = handleSubmit(async (data: SigninFormValues) => {
-    const res = await signinAction(data)
+      if (result.success) {
+        form.reset()
+      } else {
+        form.setError('root', {
+          message: result.error || 'Failed to sign in',
+        })
 
-    if (!res.success || res.error) {
-      setError('root', {
-        message: res.error || 'Something went wrong',
-      })
-    }
-  })
-
-  const onValid = async () => {
-    await onSubmit()
+        for (const [key, value] of Object.entries(
+          result.details?.fieldErrors || {}
+        )) {
+          form.setError(key as keyof SigninFormValues, {
+            message: value[0],
+          })
+        }
+      }
+    })
   }
 
   return (
@@ -69,7 +69,7 @@ function LoginForm({ signinAction }: LoginFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form action={onValid} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -79,8 +79,9 @@ function LoginForm({ signinAction }: LoginFormProps) {
                   <FormControl>
                     <Input
                       placeholder="your@email.com"
+                      type="email"
                       {...field}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -98,25 +99,21 @@ function LoginForm({ signinAction }: LoginFormProps) {
                       type="password"
                       placeholder="••••••"
                       {...field}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              className="w-full mt-4"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
-            </Button>
-            {errors.root && (
-              <div className="text-sm text-red-600 rounded-md text-center">
-                {errors.root.message}
+            {form.formState.errors.root && (
+              <div className="text-sm text-destructive rounded-md text-center">
+                {form.formState.errors.root.message}
               </div>
             )}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? 'Signing in...' : 'Sign In'}
+            </Button>
           </form>
         </Form>
       </CardContent>
@@ -124,4 +121,4 @@ function LoginForm({ signinAction }: LoginFormProps) {
   )
 }
 
-export { LoginForm }
+export { SigninForm, signinSchema, type SigninFormValues }

@@ -1,33 +1,36 @@
-import { UserService } from '@/features/user/user-service'
-import { UsersDataTable } from '@/features/user/users-data-table'
-import { userColumns, UserTableData } from '@/features/user/users-table-columns'
+import { prisma } from '@/lib/prisma'
+import { UsersDataTable } from './users-data-table'
+import { userColumns, UserTableData } from './users-table-columns'
+import { CreateUserFormDialog } from './create-user-form-dialog'
 
 export default async function Page() {
-  const result = await UserService.findAll()
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
 
-  if (!result.success) {
-    return (
-      <>
-        <div className="text-center">
-          <p className="text-destructive">
-            Error loading users: {result.error}
-          </p>
-        </div>
-      </>
-    )
-  }
-
-  const users: UserTableData[] = result.data
+  const userData: UserTableData[] = users
 
   return (
     <>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-        <p className="text-muted-foreground">
-          Manage system users and their permissions.
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+          <p className="text-muted-foreground">
+            Manage system users and their permissions.
+          </p>
+        </div>
+        <CreateUserFormDialog />
       </div>
-      <UsersDataTable columns={userColumns} data={users} />
+      <UsersDataTable columns={userColumns} data={userData} />
     </>
   )
 }

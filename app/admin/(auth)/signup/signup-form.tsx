@@ -1,16 +1,13 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  CreateUserFormValues,
+  createUserSchema,
+} from '@/app/admin/(app)/collections/users/user-schema'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Card,
@@ -20,18 +17,18 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import {
-  CreateUserFormValues,
-  createUserSchema,
-} from '@/features/user/user-schema'
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { signupAction } from '@/app/admin/(auth)/signup/actions'
 
-interface SignupFormProps {
-  signupAction: (data: CreateUserFormValues) => Promise<{
-    success: boolean
-    error?: string
-  }>
-}
+function SignupForm() {
+  const [isPending, startTransition] = useTransition()
 
-function SignupForm({ signupAction }: SignupFormProps) {
   const form = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
@@ -42,24 +39,31 @@ function SignupForm({ signupAction }: SignupFormProps) {
     },
   })
 
-  const {
-    handleSubmit,
-    setError,
-    formState: { isSubmitting, errors },
-  } = form
-
-  const onSubmit = handleSubmit(async (data: CreateUserFormValues) => {
-    const res = await signupAction(data)
-
-    if (!res?.success || res?.error) {
-      setError('root', {
-        message: res?.error || 'Something went wrong',
+  const onSubmit = (values: CreateUserFormValues) => {
+    startTransition(async () => {
+      const formData = new FormData()
+      Object.entries(values).forEach(([key, value]) => {
+        formData.append(key, value)
       })
-    }
-  })
 
-  const onValid = async () => {
-    await onSubmit()
+      const result = await signupAction(values)
+
+      if (result.success) {
+        form.reset()
+      } else {
+        form.setError('root', {
+          message: result.error || 'Failed to create account',
+        })
+
+        for (const [key, value] of Object.entries(
+          result.details?.fieldErrors || {}
+        )) {
+          form.setError(key as keyof CreateUserFormValues, {
+            message: value[0],
+          })
+        }
+      }
+    })
   }
 
   return (
@@ -74,7 +78,7 @@ function SignupForm({ signupAction }: SignupFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form action={onValid} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -83,9 +87,9 @@ function SignupForm({ signupAction }: SignupFormProps) {
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="John Doe"
+                      placeholder="Enter your name"
                       {...field}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -100,9 +104,10 @@ function SignupForm({ signupAction }: SignupFormProps) {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="your@email.com"
+                      placeholder="Enter your email"
+                      type="email"
                       {...field}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -117,10 +122,10 @@ function SignupForm({ signupAction }: SignupFormProps) {
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input
+                      placeholder="Enter password"
                       type="password"
-                      placeholder="••••••"
                       {...field}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -135,28 +140,24 @@ function SignupForm({ signupAction }: SignupFormProps) {
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
                     <Input
+                      placeholder="Confirm password"
                       type="password"
-                      placeholder="••••••"
                       {...field}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              className="w-full mt-4"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Creating account...' : 'Sign Up'}
-            </Button>
-            {errors.root && (
-              <div className="text-sm text-red-600 rounded-md text-center">
-                {errors.root.message}
+            {form.formState.errors.root && (
+              <div className="text-sm text-destructive rounded-md text-center">
+                {form.formState.errors.root.message}
               </div>
             )}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? 'Creating account...' : 'Sign Up'}
+            </Button>
           </form>
         </Form>
       </CardContent>

@@ -1,4 +1,4 @@
-import { ThemeProvider } from '@/components/admin/theme-provider'
+import { ThemeProvider } from './theme-provider'
 
 export const metadata = {
   robots: { index: false, follow: false, nocache: true },

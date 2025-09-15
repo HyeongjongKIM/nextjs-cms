@@ -1,22 +1,51 @@
 'use server'
 
-import { SigninFormValues } from '@/features/auth/signin-schema'
-import { AuthService } from '@/features/auth/auth-service'
+import { SigninFormValues, signinSchema } from './signin-schema'
 import { SessionService } from '@/lib/session'
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 async function signinAction(params: SigninFormValues) {
-  const result = await AuthService.login(params.email, params.password)
+  const parsedResult = signinSchema.safeParse(params)
 
-  if (result.success) {
-    await SessionService.setSession(result.data.userId)
-    redirect('/admin/dashboard')
-  } else {
+  if (!parsedResult.success) {
     return {
       success: false,
-      error: result.error,
+      error: 'Invalid form data',
+      details: z.flattenError(parsedResult.error),
     }
   }
+
+  const { email, password } = parsedResult.data
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      password: true,
+    },
+  })
+
+  if (!user) {
+    return {
+      success: false,
+      error: 'Invalid email or password',
+    }
+  }
+
+  const passwordMatch = await bcrypt.compare(password, user.password)
+
+  if (!passwordMatch) {
+    return {
+      success: false,
+      error: 'Invalid email or password',
+    }
+  }
+
+  await SessionService.setSession(user.id)
+  redirect('/admin/dashboard')
 }
 
 export { signinAction }
