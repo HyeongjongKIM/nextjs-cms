@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Role } from '@/lib/generated/prisma';
+import { DeleteUserDialog } from './delete-user-dialog';
 
 export type UserTableData = {
   id: string;
@@ -24,7 +25,9 @@ export type UserTableData = {
   updatedAt: Date;
 };
 
-export const userColumns: ColumnDef<UserTableData>[] = [
+export const createUserColumns = (
+  currentUser: { id: string; role: Role } | null
+): ColumnDef<UserTableData>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -158,6 +161,8 @@ export const userColumns: ColumnDef<UserTableData>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const user = row.original;
+      const canDelete =
+        currentUser?.role === Role.SUPER_ADMIN && currentUser.id !== user.id;
 
       return (
         <DropdownMenu>
@@ -177,10 +182,12 @@ export const userColumns: ColumnDef<UserTableData>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem>View details</DropdownMenuItem>
             <DropdownMenuItem>Edit user</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Delete user
-            </DropdownMenuItem>
+            {canDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <DeleteUserDialog userId={user.id} userName={user.name} />
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );

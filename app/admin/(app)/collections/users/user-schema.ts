@@ -5,6 +5,7 @@ const createUserSchema = UserSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true,
 })
   .extend({
     confirmPassword: z.string(),

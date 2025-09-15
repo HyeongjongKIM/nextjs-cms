@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
@@ -31,16 +30,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { createUserColumns, UserTableData } from './users-table-columns';
+import { Role } from '@/lib/generated/prisma';
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface UsersDataTableProps {
+  data: UserTableData[];
+  currentUser: { id: string; role: Role } | null;
 }
 
-export function UsersDataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function UsersDataTable({ data, currentUser }: UsersDataTableProps) {
+  const columns = createUserColumns(currentUser);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

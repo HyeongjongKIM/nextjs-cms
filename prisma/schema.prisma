@@ -23,11 +23,12 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String /// @zod.string.min(2, { message: 'Name must be at least 2 characters long' })
-  email     String   @unique /// @zod.string.email({ message: 'Please enter a valid email address' })
+  email     String    @unique /// @zod.string.email({ message: 'Please enter a valid email address' })
   password  String /// @zod.string.min(6, { message: 'Password must be at least 6 characters long' })
-  role      Role     @default(VIEWER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      Role      @default(VIEWER)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

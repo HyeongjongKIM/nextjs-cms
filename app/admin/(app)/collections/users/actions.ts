@@ -58,7 +58,6 @@ export async function createUserAction(params: CreateUserFormValues) {
       },
     });
 
-    // Revalidate the users page to show the new user
     revalidatePath('/admin/collections/users');
 
     return {
@@ -69,6 +68,52 @@ export async function createUserAction(params: CreateUserFormValues) {
     return {
       success: false,
       error: 'Failed to create user',
+    };
+  }
+}
+
+export async function deleteUser(userId: string) {
+  const authResult = await requireSuperAdmin();
+
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error,
+    };
+  }
+
+  try {
+    if (authResult.user?.id === userId) {
+      return {
+        success: false,
+        error: 'Cannot delete your own account',
+      };
+    }
+
+    const deletedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        deletedAt: new Date(),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    // Revalidate the users page to reflect changes
+    revalidatePath('/admin/collections/users');
+
+    return {
+      success: true,
+      data: deletedUser,
+    };
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return {
+      success: false,
+      error: 'Failed to delete user. Please try again.',
     };
   }
 }

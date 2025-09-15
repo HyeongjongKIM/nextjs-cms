@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { UsersDataTable } from './users-data-table';
-import { userColumns, UserTableData } from './users-table-columns';
+import { UserTableData } from './users-table-columns';
 import { CreateUserFormDialog } from './create-user-form-dialog';
 import { getCurrentUser } from '@/lib/auth';
 import { Role } from '@/lib/generated/prisma';
@@ -8,6 +8,9 @@ import { Role } from '@/lib/generated/prisma';
 export default async function Page() {
   const [users, currentUser] = await Promise.all([
     prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
       select: {
         id: true,
         name: true,
@@ -37,7 +40,7 @@ export default async function Page() {
         </div>
         {canCreateUsers && <CreateUserFormDialog />}
       </div>
-      <UsersDataTable columns={userColumns} data={userData} />
+      <UsersDataTable data={userData} currentUser={currentUser} />
     </>
   );
 }

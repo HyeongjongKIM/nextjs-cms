@@ -5,6 +5,7 @@ const signupSchema = UserSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true,
   role: true,
 })
   .extend({
