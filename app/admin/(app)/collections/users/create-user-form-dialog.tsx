@@ -24,7 +24,15 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus } from 'lucide-react';
+import { Role } from '@/lib/generated/prisma';
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
@@ -41,6 +49,7 @@ export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
       email: '',
       password: '',
       confirmPassword: '',
+      role: Role.VIEWER,
     },
   });
 
@@ -149,6 +158,33 @@ export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={Role.SUPER_ADMIN}>
+                        Super Admin
+                      </SelectItem>
+                      <SelectItem value={Role.EDITOR}>Editor</SelectItem>
+                      <SelectItem value={Role.VIEWER}>Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

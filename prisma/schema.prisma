@@ -16,11 +16,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  SUPER_ADMIN
+  EDITOR
+  VIEWER
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String /// @zod.string.min(2, { message: 'Name must be at least 2 characters long' })
   email     String   @unique /// @zod.string.email({ message: 'Please enter a valid email address' })
   password  String /// @zod.string.min(6, { message: 'Password must be at least 6 characters long' })
+  role      Role     @default(VIEWER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -3,10 +3,6 @@
 import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  CreateUserFormValues,
-  createUserSchema,
-} from '@/app/admin/(app)/collections/users/user-schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,12 +21,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { signupAction } from '@/app/admin/(auth)/signup/actions';
+import { SignupFormValues, signupSchema } from './signup-schema';
 
 function SignupForm() {
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<CreateUserFormValues>({
-    resolver: zodResolver(createUserSchema),
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       name: '',
       email: '',
@@ -39,13 +36,8 @@ function SignupForm() {
     },
   });
 
-  const onSubmit = (values: CreateUserFormValues) => {
+  const onSubmit = (values: SignupFormValues) => {
     startTransition(async () => {
-      const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
       const result = await signupAction(values);
 
       if (result.success) {
@@ -58,7 +50,7 @@ function SignupForm() {
         for (const [key, value] of Object.entries(
           result.details?.fieldErrors || {}
         )) {
-          form.setError(key as keyof CreateUserFormValues, {
+          form.setError(key as keyof SignupFormValues, {
             message: value[0],
           });
         }

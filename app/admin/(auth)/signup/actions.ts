@@ -1,17 +1,15 @@
 'use server';
 
-import {
-  CreateUserFormValues,
-  createUserSchema,
-} from '@/app/admin/(app)/collections/users/user-schema';
 import { redirect } from 'next/navigation';
 import { SessionService } from '@/lib/session';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/hash-password';
+import { SignupFormValues, signupSchema } from './signup-schema';
+import { Role } from '@/lib/generated/prisma';
 
-async function signupAction(params: CreateUserFormValues) {
-  const parsedResult = createUserSchema.safeParse(params);
+async function signupAction(params: SignupFormValues) {
+  const parsedResult = signupSchema.safeParse(params);
 
   if (!parsedResult.success) {
     return {
@@ -23,14 +21,12 @@ async function signupAction(params: CreateUserFormValues) {
 
   const { name, email, password } = parsedResult.data;
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
+  const userCount = await prisma.user.count();
 
-  if (existingUser) {
+  if (userCount > 0) {
     return {
       success: false,
-      error: 'User with this email already exists',
+      error: 'Signup is not available. Initial admin already exists.',
     };
   }
 
@@ -41,6 +37,7 @@ async function signupAction(params: CreateUserFormValues) {
       name,
       email,
       password: hashedPassword,
+      role: Role.SUPER_ADMIN,
     },
     select: {
       id: true,

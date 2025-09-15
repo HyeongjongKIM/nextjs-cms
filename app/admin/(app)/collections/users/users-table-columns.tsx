@@ -12,11 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Role } from '@/lib/generated/prisma';
 
 export type UserTableData = {
   id: string;
   name: string;
   email: string;
+  role: Role;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -77,6 +80,34 @@ export const userColumns: ColumnDef<UserTableData>[] = [
       );
     },
     cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
+  },
+  {
+    accessorKey: 'role',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Role
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const role = row.getValue('role') as Role;
+      const roleLabels = {
+        [Role.SUPER_ADMIN]: 'Super Admin',
+        [Role.EDITOR]: 'Editor',
+        [Role.VIEWER]: 'Viewer',
+      };
+      const roleColors = {
+        [Role.SUPER_ADMIN]: 'bg-red-100 text-red-800',
+        [Role.EDITOR]: 'bg-blue-100 text-blue-800',
+        [Role.VIEWER]: 'bg-gray-100 text-gray-800',
+      };
+      return <Badge className={roleColors[role]}>{roleLabels[role]}</Badge>;
+    },
   },
   {
     accessorKey: 'createdAt',

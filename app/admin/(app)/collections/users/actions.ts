@@ -5,8 +5,17 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/hash-password';
+import { requireSuperAdmin } from '@/lib/auth';
 
 export async function createUserAction(params: CreateUserFormValues) {
+  const authResult = await requireSuperAdmin();
+  if (!authResult.success) {
+    return {
+      success: false,
+      error: authResult.error,
+    };
+  }
+
   const parsedResult = createUserSchema.safeParse(params);
 
   if (!parsedResult.success) {
@@ -17,7 +26,7 @@ export async function createUserAction(params: CreateUserFormValues) {
     };
   }
 
-  const { name, email, password } = parsedResult.data;
+  const { name, email, password, role } = parsedResult.data;
 
   const existingUser = await prisma.user.findUnique({
     where: { email },
@@ -38,11 +47,13 @@ export async function createUserAction(params: CreateUserFormValues) {
         name,
         email,
         password: hashedPassword,
+        role,
       },
       select: {
         id: true,
         name: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });

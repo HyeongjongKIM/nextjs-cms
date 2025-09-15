@@ -2,22 +2,29 @@ import { prisma } from '@/lib/prisma';
 import { UsersDataTable } from './users-data-table';
 import { userColumns, UserTableData } from './users-table-columns';
 import { CreateUserFormDialog } from './create-user-form-dialog';
+import { getCurrentUser } from '@/lib/auth';
+import { Role } from '@/lib/generated/prisma';
 
 export default async function Page() {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+  const [users, currentUser] = await Promise.all([
+    prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    }),
+    getCurrentUser(),
+  ]);
 
   const userData: UserTableData[] = users;
+  const canCreateUsers = currentUser?.role === Role.SUPER_ADMIN;
 
   return (
     <>
@@ -28,7 +35,7 @@ export default async function Page() {
             Manage system users and their permissions.
           </p>
         </div>
-        <CreateUserFormDialog />
+        {canCreateUsers && <CreateUserFormDialog />}
       </div>
       <UsersDataTable columns={userColumns} data={userData} />
     </>
