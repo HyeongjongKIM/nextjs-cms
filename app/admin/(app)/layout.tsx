@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Sidebar,
@@ -13,14 +13,14 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from '@/components/ui/sidebar'
+} from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu';
 import {
   Home,
   User,
@@ -28,9 +28,9 @@ import {
   Files,
   LogOut,
   Settings,
-} from 'lucide-react'
-import Link from 'next/link'
-import { logoutAction } from './actions'
+} from 'lucide-react';
+import Link from 'next/link';
+import { logoutAction } from './actions';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -119,5 +119,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

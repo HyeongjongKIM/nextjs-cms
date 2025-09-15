@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import { useTransition } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   CreateUserFormValues,
   createUserSchema,
-} from '@/app/admin/(app)/collections/users/user-schema'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+} from '@/app/admin/(app)/collections/users/user-schema';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -23,11 +23,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { signupAction } from '@/app/admin/(auth)/signup/actions'
+} from '@/components/ui/form';
+import { signupAction } from '@/app/admin/(auth)/signup/actions';
 
 function SignupForm() {
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -37,34 +37,34 @@ function SignupForm() {
       password: '',
       confirmPassword: '',
     },
-  })
+  });
 
   const onSubmit = (values: CreateUserFormValues) => {
     startTransition(async () => {
-      const formData = new FormData()
+      const formData = new FormData();
       Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value)
-      })
+        formData.append(key, value);
+      });
 
-      const result = await signupAction(values)
+      const result = await signupAction(values);
 
       if (result.success) {
-        form.reset()
+        form.reset();
       } else {
         form.setError('root', {
           message: result.error || 'Failed to create account',
-        })
+        });
 
         for (const [key, value] of Object.entries(
           result.details?.fieldErrors || {}
         )) {
           form.setError(key as keyof CreateUserFormValues, {
             message: value[0],
-          })
+          });
         }
       }
-    })
-  }
+    });
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -162,7 +162,7 @@ function SignupForm() {
         </Form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export { SignupForm }
+export { SignupForm };

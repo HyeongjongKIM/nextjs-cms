@@ -1,5 +1,5 @@
-import { UserSchema } from '@/lib/generated/zod'
-import { z } from 'zod'
+import { UserSchema } from '@/lib/generated/zod';
+import { z } from 'zod';
 
 const createUserSchema = UserSchema.omit({
   id: true,
@@ -12,8 +12,8 @@ const createUserSchema = UserSchema.omit({
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
-  })
+  });
 
-type CreateUserFormValues = z.infer<typeof createUserSchema>
+type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
-export { createUserSchema, type CreateUserFormValues }
+export { createUserSchema, type CreateUserFormValues };

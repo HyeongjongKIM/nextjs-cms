@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useState, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { CreateUserFormValues, createUserSchema } from './user-schema'
-import { createUserAction } from '@/app/admin/(app)/collections/users/actions'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CreateUserFormValues, createUserSchema } from './user-schema';
+import { createUserAction } from '@/app/admin/(app)/collections/users/actions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -23,16 +23,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Plus } from 'lucide-react'
+} from '@/components/ui/form';
+import { Plus } from 'lucide-react';
 
 interface CreateUserFormProps {
-  onSuccess?: () => void
+  onSuccess?: () => void;
 }
 
 export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
-  const [open, setOpen] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -42,20 +42,20 @@ export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
       password: '',
       confirmPassword: '',
     },
-  })
+  });
 
   const onSubmit = (values: CreateUserFormValues) => {
     startTransition(async () => {
-      const result = await createUserAction(values)
+      const result = await createUserAction(values);
 
       if (result.success) {
-        form.reset()
-        setOpen(false)
-        onSuccess?.()
+        form.reset();
+        setOpen(false);
+        onSuccess?.();
       } else {
         form.setError('root', {
           message: result.error || 'Failed to create user',
-        })
+        });
 
         if (result.details) {
           // Handle field-specific errors
@@ -63,13 +63,13 @@ export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
             if (Array.isArray(errors) && errors.length > 0) {
               form.setError(field as keyof CreateUserFormValues, {
                 message: errors[0],
-              })
+              });
             }
-          })
+          });
         }
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -175,5 +175,5 @@ export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

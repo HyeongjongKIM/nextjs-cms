@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma'
-import { UsersDataTable } from './users-data-table'
-import { userColumns, UserTableData } from './users-table-columns'
-import { CreateUserFormDialog } from './create-user-form-dialog'
+import { prisma } from '@/lib/prisma';
+import { UsersDataTable } from './users-data-table';
+import { userColumns, UserTableData } from './users-table-columns';
+import { CreateUserFormDialog } from './create-user-form-dialog';
 
 export default async function Page() {
   const users = await prisma.user.findMany({
@@ -15,9 +15,9 @@ export default async function Page() {
     orderBy: {
       createdAt: 'desc',
     },
-  })
+  });
 
-  const userData: UserTableData[] = users
+  const userData: UserTableData[] = users;
 
   return (
     <>
@@ -32,5 +32,5 @@ export default async function Page() {
       </div>
       <UsersDataTable columns={userColumns} data={userData} />
     </>
-  )
+  );
 }

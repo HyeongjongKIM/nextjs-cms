@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useTransition } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
+import { useTransition } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -11,21 +11,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/card';
 
-import { signinAction } from '@/app/admin/(auth)/signin/actions'
-import { SigninFormValues, signinSchema } from './signin-schema'
+import { signinAction } from '@/app/admin/(auth)/signin/actions';
+import { SigninFormValues, signinSchema } from './signin-schema';
 
 function SigninForm() {
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<SigninFormValues>({
     resolver: zodResolver(signinSchema),
@@ -33,29 +33,29 @@ function SigninForm() {
       email: '',
       password: '',
     },
-  })
+  });
 
   const onSubmit = (values: SigninFormValues) => {
     startTransition(async () => {
-      const result = await signinAction(values)
+      const result = await signinAction(values);
 
       if (result.success) {
-        form.reset()
+        form.reset();
       } else {
         form.setError('root', {
           message: result.error || 'Failed to sign in',
-        })
+        });
 
         for (const [key, value] of Object.entries(
           result.details?.fieldErrors || {}
         )) {
           form.setError(key as keyof SigninFormValues, {
             message: value[0],
-          })
+          });
         }
       }
-    })
-  }
+    });
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -118,7 +118,7 @@ function SigninForm() {
         </Form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export { SigninForm, signinSchema, type SigninFormValues }
+export { SigninForm, signinSchema, type SigninFormValues };

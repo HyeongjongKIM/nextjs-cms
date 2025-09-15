@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,15 +11,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu';
 
 export type UserTableData = {
-  id: string
-  name: string
-  email: string
-  createdAt: Date
-  updatedAt: Date
-}
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export const userColumns: ColumnDef<UserTableData>[] = [
   {
@@ -57,7 +57,7 @@ export const userColumns: ColumnDef<UserTableData>[] = [
           Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue('name')}</div>
@@ -74,7 +74,7 @@ export const userColumns: ColumnDef<UserTableData>[] = [
           Email
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
   },
@@ -89,15 +89,15 @@ export const userColumns: ColumnDef<UserTableData>[] = [
           Created
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => {
-      const date = row.getValue('createdAt') as Date
+      const date = row.getValue('createdAt') as Date;
       return (
         <div className="text-sm text-muted-foreground">
           {date.toLocaleDateString()}
         </div>
-      )
+      );
     },
   },
   {
@@ -111,22 +111,22 @@ export const userColumns: ColumnDef<UserTableData>[] = [
           Updated
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => {
-      const date = row.getValue('updatedAt') as Date
+      const date = row.getValue('updatedAt') as Date;
       return (
         <div className="text-sm text-muted-foreground">
           {date.toLocaleDateString()}
         </div>
-      )
+      );
     },
   },
   {
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const user = row.original
+      const user = row.original;
 
       return (
         <DropdownMenu>
@@ -152,7 +152,7 @@ export const userColumns: ColumnDef<UserTableData>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

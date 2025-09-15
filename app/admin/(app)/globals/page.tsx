@@ -1,3 +1,3 @@
 export default function Page() {
-  return <div>Globals</div>
+  return <div>Globals</div>;
 }
