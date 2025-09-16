@@ -22,6 +22,12 @@ enum Role {
   VIEWER
 }
 
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model User {
   id        String    @id @default(cuid())
   name      String /// @zod.string.min(2, { message: 'Name must be at least 2 characters long' })
@@ -31,4 +37,41 @@ model User {
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  // Relations
+  pages Page[]
+}
+
+model Page {
+  id           String     @id @default(cuid())
+  title        String /// @zod.string.min(1, { message: 'Title is required' })
+  slug         String     @unique /// @zod.string.min(1, { message: 'Slug is required' }).regex(/^[a-z0-9-]+$/, { message: 'Slug must contain only lowercase letters, numbers, and hyphens' })
+  content      String /// @zod.string.min(1, { message: 'Content is required' })
+  excerpt      String? /// @zod.string.max(500, { message: 'Excerpt must be less than 500 characters' })
+  featuredImage String? /// @zod.string.url({ message: 'Featured image must be a valid URL' })
+  category     String?
+  tags         String?
+
+  // SEO fields
+  metaTitle       String? /// @zod.string.max(60, { message: 'Meta title must be less than 60 characters' })
+  metaDescription String? /// @zod.string.max(160, { message: 'Meta description must be less than 160 characters' })
+  ogImage         String? /// @zod.string.url({ message: 'OG image must be a valid URL' })
+
+  // Status and publishing
+  status       PageStatus @default(DRAFT)
+  publishedAt  DateTime?
+
+  // Relationships
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id])
+
+  // Timestamps
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+
+  @@index([status])
+  @@index([slug])
+  @@index([authorId])
+  @@index([createdAt])
 }
