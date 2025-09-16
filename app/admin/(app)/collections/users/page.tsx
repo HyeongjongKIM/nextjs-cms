@@ -5,17 +5,34 @@ import { CreateUserFormDialog } from './create-user-form-dialog';
 import { getCurrentUser } from '@/lib/auth';
 import { Role } from '@/lib/generated/prisma';
 
-export default async function Page() {
+interface PageProps {
+  searchParams: {
+    roles?: string;
+    showDeleted?: string;
+  };
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const showDeleted = searchParams.showDeleted === 'true';
+  const selectedRoles = searchParams.roles
+    ? searchParams.roles.split(',')
+    : Object.values(Role);
+
   const [users, currentUser] = await Promise.all([
     prisma.user.findMany({
       where: {
-        deletedAt: null,
+        ...(showDeleted ? {} : { deletedAt: null }),
+        ...(selectedRoles.length > 0 &&
+        selectedRoles.length < Object.values(Role).length
+          ? { role: { in: selectedRoles as Role[] } }
+          : {}),
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        deletedAt: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -40,7 +57,14 @@ export default async function Page() {
         </div>
         {canCreateUsers && <CreateUserFormDialog />}
       </div>
-      <UsersDataTable data={userData} currentUser={currentUser} />
+      <UsersDataTable
+        data={userData}
+        currentUser={currentUser}
+        initialFilters={{
+          roles: selectedRoles,
+          showDeleted,
+        }}
+      />
     </>
   );
 }

@@ -21,6 +21,7 @@ export type UserTableData = {
   name: string;
   email: string;
   role: Role;
+  deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -68,6 +69,22 @@ export const createUserColumns = (
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue('name')}</div>
     ),
+  },
+  {
+    accessorKey: 'deletedAt',
+    header: 'Status',
+    cell: ({ row }) => {
+      const deletedAt = row.getValue('deletedAt') as Date | null;
+      return deletedAt ? (
+        <Badge variant="secondary" className="bg-red-100 text-red-800">
+          Deleted
+        </Badge>
+      ) : (
+        <Badge variant="secondary" className="bg-green-100 text-green-800">
+          Active
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: 'email',
@@ -161,8 +178,11 @@ export const createUserColumns = (
     enableHiding: false,
     cell: ({ row }) => {
       const user = row.original;
+      const isDeleted = user.deletedAt !== null;
       const canDelete =
-        currentUser?.role === Role.SUPER_ADMIN && currentUser.id !== user.id;
+        currentUser?.role === Role.SUPER_ADMIN &&
+        currentUser.id !== user.id &&
+        !isDeleted;
 
       return (
         <DropdownMenu>
@@ -181,7 +201,7 @@ export const createUserColumns = (
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Edit user</DropdownMenuItem>
+            {!isDeleted && <DropdownMenuItem>Edit user</DropdownMenuItem>}
             {canDelete && (
               <>
                 <DropdownMenuSeparator />
