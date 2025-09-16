@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/table';
 import { createUserColumns, UserTableData } from './users-table-columns';
 import { Role } from '@/lib/generated/prisma';
+import { ROLE } from '@/lib/constants';
 
 interface UsersDataTableProps {
   data: UserTableData[];
@@ -106,12 +107,6 @@ export function UsersDataTable({
     updateFilters(selectedRoles, checked);
   };
 
-  const roleLabels = {
-    [Role.SUPER_ADMIN]: 'Super Admin',
-    [Role.EDITOR]: 'Editor',
-    [Role.VIEWER]: 'Viewer',
-  };
-
   // Global filter function for name and email search
   const globalFilterFn = (
     row: Row<UserTableData>,
@@ -175,7 +170,7 @@ export function UsersDataTable({
                   checked={selectedRoles.includes(role)}
                   onCheckedChange={() => handleRoleToggle(role)}
                 >
-                  {roleLabels[role]}
+                  {ROLE[role].label}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>

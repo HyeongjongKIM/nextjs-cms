@@ -3,6 +3,7 @@
 import { SessionService } from './session';
 import { prisma } from './prisma';
 import { Role } from './generated/prisma';
+import { ROLE } from './constants';
 
 export async function getCurrentUser() {
   const session = await SessionService.getSession();
@@ -54,11 +55,5 @@ export async function hasMinimumRole(minimumRole: Role) {
     return false;
   }
 
-  const roleHierarchy = {
-    [Role.VIEWER]: 1,
-    [Role.EDITOR]: 2,
-    [Role.SUPER_ADMIN]: 3,
-  };
-
-  return roleHierarchy[user.role] >= roleHierarchy[minimumRole];
+  return ROLE[user.role].hierarchy >= ROLE[minimumRole].hierarchy;
 }

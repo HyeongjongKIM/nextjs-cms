@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { Role } from '@/lib/generated/prisma';
+import { ROLE } from '@/lib/constants';
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
@@ -178,11 +179,11 @@ export function CreateUserFormDialog({ onSuccess }: CreateUserFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value={Role.SUPER_ADMIN}>
-                        Super Admin
-                      </SelectItem>
-                      <SelectItem value={Role.EDITOR}>Editor</SelectItem>
-                      <SelectItem value={Role.VIEWER}>Viewer</SelectItem>
+                      {Object.entries(ROLE).map(([key, role]) => (
+                        <SelectItem key={key} value={key}>
+                          {role.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
