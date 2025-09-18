@@ -215,6 +215,185 @@ export async function restorePage(id: string): Promise<ActionResult<void>> {
   }
 }
 
+export async function getPageById(
+  id: string
+): Promise<ActionResult<PageTableData>> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: 'Authentication required' };
+    }
+
+    const page = await prisma.page.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!page) {
+      return { success: false, error: 'Page not found' };
+    }
+
+    return {
+      success: true,
+      data: page,
+    };
+  } catch (error) {
+    console.error('Error fetching page:', error);
+    return {
+      success: false,
+      error: 'Failed to fetch page',
+      details: error,
+    };
+  }
+}
+
+export interface UpdatePageInput {
+  title: string;
+  slug?: string;
+  content: string;
+  excerpt?: string;
+  featuredImage?: string;
+  category?: string;
+  tags?: string;
+  status?: $Enums.PageStatus;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+}
+
+export async function updatePage(
+  id: string,
+  data: UpdatePageInput
+): Promise<ActionResult<PageTableData>> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: 'Authentication required' };
+    }
+
+    // Validate required fields
+    if (!data.title || data.title.trim().length === 0) {
+      return { success: false, error: 'Title is required' };
+    }
+
+    if (!data.content || data.content.trim().length === 0) {
+      return { success: false, error: 'Content is required' };
+    }
+
+    // Check if page exists
+    const existingPage = await prisma.page.findUnique({
+      where: { id },
+      select: { id: true, slug: true },
+    });
+
+    if (!existingPage) {
+      return { success: false, error: 'Page not found' };
+    }
+
+    // Generate slug from title if not provided
+    let slug = data.slug?.trim();
+    if (!slug) {
+      slug = generateSlug(data.title);
+    } else {
+      slug = generateSlug(slug);
+    }
+
+    // Check if slug is unique (excluding current page)
+    if (slug !== existingPage.slug) {
+      const pageWithSlug = await prisma.page.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
+
+      if (pageWithSlug) {
+        // Generate a unique slug by appending a number
+        let counter = 1;
+        let uniqueSlug = `${slug}-${counter}`;
+
+        while (true) {
+          const slugExists = await prisma.page.findUnique({
+            where: { slug: uniqueSlug },
+            select: { id: true },
+          });
+
+          if (!slugExists) {
+            slug = uniqueSlug;
+            break;
+          }
+
+          counter++;
+          uniqueSlug = `${slug}-${counter}`;
+        }
+      }
+    }
+
+    // Determine if we need to update publishedAt
+    let publishedAt: Date | null | undefined = undefined;
+    if (data.status === 'PUBLISHED') {
+      const currentPage = await prisma.page.findUnique({
+        where: { id },
+        select: { publishedAt: true, status: true },
+      });
+
+      // Only set publishedAt if page wasn't previously published
+      if (!currentPage?.publishedAt || currentPage.status !== 'PUBLISHED') {
+        publishedAt = new Date();
+      }
+    }
+
+    // Update the page
+    const page = await prisma.page.update({
+      where: { id },
+      data: {
+        title: data.title.trim(),
+        slug,
+        content: data.content.trim(),
+        excerpt: data.excerpt?.trim() || null,
+        featuredImage: data.featuredImage?.trim() || null,
+        category: data.category?.trim() || null,
+        tags: data.tags?.trim() || null,
+        status: data.status || 'DRAFT',
+        metaTitle: data.metaTitle?.trim() || null,
+        metaDescription: data.metaDescription?.trim() || null,
+        ogImage: data.ogImage?.trim() || null,
+        ...(publishedAt !== undefined && { publishedAt }),
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    revalidatePath('/admin/collections/pages');
+    revalidatePath(`/admin/collections/pages/edit/${id}`);
+
+    return {
+      success: true,
+      data: page,
+    };
+  } catch (error) {
+    console.error('Error updating page:', error);
+    return {
+      success: false,
+      error: 'Failed to update page',
+      details: error,
+    };
+  }
+}
+
 export async function createPage(
   data: CreatePageInput
 ): Promise<ActionResult<PageTableData>> {

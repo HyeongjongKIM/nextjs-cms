@@ -206,7 +206,7 @@ export const createPageColumns = (): ColumnDef<PageTableData>[] => [
             )}
             {!isDeleted && (
               <DropdownMenuItem asChild>
-                <Link href={`/admin/collections/pages/${page.id}`}>
+                <Link href={`/admin/collections/pages/edit/${page.id}`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit page
                 </Link>

@@ -4,8 +4,12 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { CreatePageFormValues, createPageSchema } from './page-schema';
-import { createPage } from './actions';
+import {
+  PageFormValues,
+  createPageSchema,
+  updatePageSchema,
+} from './page-schema';
+import { createPage, updatePage, type PageTableData } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,46 +49,52 @@ const STATUS_OPTIONS = [
 ] as const;
 
 interface PageFormProps {
+  page?: PageTableData;
   onSuccess?: () => void;
 }
 
-export function PageForm({ onSuccess }: PageFormProps) {
+export function PageForm({ page, onSuccess }: PageFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [autoSlug, setAutoSlug] = useState(true);
 
-  const form = useForm<CreatePageFormValues>({
-    resolver: zodResolver(createPageSchema),
+  const isEdit = !!page;
+  const schema = isEdit ? updatePageSchema : createPageSchema;
+
+  const form = useForm<PageFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      title: '',
-      slug: '',
-      content: '',
-      excerpt: '',
-      featuredImage: '',
-      category: '',
-      tags: '',
-      status: PageStatus.DRAFT,
-      metaTitle: '',
-      metaDescription: '',
-      ogImage: '',
+      title: page?.title || '',
+      slug: page?.slug || '',
+      content: page?.content || '',
+      excerpt: page?.excerpt || '',
+      featuredImage: page?.featuredImage || '',
+      category: page?.category || '',
+      tags: page?.tags || '',
+      status: (page?.status as PageStatus) || PageStatus.DRAFT,
+      metaTitle: page?.metaTitle || '',
+      metaDescription: page?.metaDescription || '',
+      ogImage: page?.ogImage || '',
     },
   });
 
-  // Auto-generate slug from title
+  // Auto-generate slug from title (only for new pages)
   const handleTitleChange = (value: string) => {
-    if (autoSlug) {
+    if (autoSlug && !isEdit) {
       const slug = generateSlug(value);
       form.setValue('slug', slug);
     }
   };
 
   const handleSlugChange = (value: string) => {
-    setAutoSlug(false);
+    if (!isEdit) {
+      setAutoSlug(false);
+    }
     const slug = generateSlug(value);
     form.setValue('slug', slug);
   };
 
-  const onSubmit = (values: CreatePageFormValues) => {
+  const onSubmit = (values: PageFormValues) => {
     startTransition(async () => {
       // Convert empty strings to undefined for optional fields
       const pageData = {
@@ -98,24 +108,29 @@ export function PageForm({ onSuccess }: PageFormProps) {
         ogImage: values.ogImage || undefined,
       };
 
-      const result = await createPage(pageData);
+      const result = isEdit
+        ? await updatePage(page!.id, pageData)
+        : await createPage(pageData);
 
       if (result.success) {
-        toast.success('Page created successfully');
-        form.reset();
+        toast.success(`Page ${isEdit ? 'updated' : 'created'} successfully`);
+        if (!isEdit) {
+          form.reset();
+        }
         onSuccess?.();
         router.push('/admin/collections/pages');
       } else {
         toast.error(result.error);
         form.setError('root', {
-          message: result.error || 'Failed to create page',
+          message:
+            result.error || `Failed to ${isEdit ? 'update' : 'create'} page`,
         });
 
         if (result.details) {
           // Handle field-specific errors
           Object.entries(result.details).forEach(([field, errors]) => {
             if (Array.isArray(errors) && errors.length > 0) {
-              form.setError(field as keyof CreatePageFormValues, {
+              form.setError(field as keyof PageFormValues, {
                 message: errors[0],
               });
             }
@@ -445,7 +460,13 @@ export function PageForm({ onSuccess }: PageFormProps) {
               Save as Draft
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Creating...' : 'Create Page'}
+              {isPending
+                ? isEdit
+                  ? 'Updating...'
+                  : 'Creating...'
+                : isEdit
+                  ? 'Update Page'
+                  : 'Create Page'}
             </Button>
           </div>
         </div>
