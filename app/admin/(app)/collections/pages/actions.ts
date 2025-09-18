@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import type { Prisma, $Enums } from '@/lib/generated/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { generateSlug } from '@/lib/utils';
 
 type ActionResult<T> =
   | { data: T; success: true }
@@ -13,16 +14,25 @@ export interface PageTableData {
   id: string;
   title: string;
   slug: string;
+  content: string;
+  excerpt: string | null;
+  featuredImage: string | null;
+  category: string | null;
+  tags: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  ogImage: string | null;
   status: string;
   publishedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
+  authorId: string;
   author: {
     id: string;
     name: string;
     email: string;
   };
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 export interface GetPagesParams {
@@ -31,6 +41,20 @@ export interface GetPagesParams {
   showDeleted?: boolean;
   page?: number;
   pageSize?: number;
+}
+
+export interface CreatePageInput {
+  title: string;
+  slug?: string;
+  content: string;
+  excerpt?: string;
+  featuredImage?: string;
+  category?: string;
+  tags?: string;
+  status?: $Enums.PageStatus;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
 }
 
 export async function getAllPages(
@@ -186,6 +210,103 @@ export async function restorePage(id: string): Promise<ActionResult<void>> {
     return {
       success: false,
       error: 'Failed to restore page',
+      details: error,
+    };
+  }
+}
+
+export async function createPage(
+  data: CreatePageInput
+): Promise<ActionResult<PageTableData>> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: 'Authentication required' };
+    }
+
+    // Validate required fields
+    if (!data.title || data.title.trim().length === 0) {
+      return { success: false, error: 'Title is required' };
+    }
+
+    if (!data.content || data.content.trim().length === 0) {
+      return { success: false, error: 'Content is required' };
+    }
+
+    // Generate slug from title if not provided
+    let slug = data.slug?.trim();
+    if (!slug) {
+      slug = generateSlug(data.title);
+    } else {
+      slug = generateSlug(slug);
+    }
+
+    // Check if slug is unique
+    const existingPage = await prisma.page.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (existingPage) {
+      // Generate a unique slug by appending a number
+      let counter = 1;
+      let uniqueSlug = `${slug}-${counter}`;
+
+      while (true) {
+        const slugExists = await prisma.page.findUnique({
+          where: { slug: uniqueSlug },
+          select: { id: true },
+        });
+
+        if (!slugExists) {
+          slug = uniqueSlug;
+          break;
+        }
+
+        counter++;
+        uniqueSlug = `${slug}-${counter}`;
+      }
+    }
+
+    // Create the page
+    const page = await prisma.page.create({
+      data: {
+        title: data.title.trim(),
+        slug,
+        content: data.content.trim(),
+        excerpt: data.excerpt?.trim() || null,
+        featuredImage: data.featuredImage?.trim() || null,
+        category: data.category?.trim() || null,
+        tags: data.tags?.trim() || null,
+        status: data.status || 'DRAFT',
+        metaTitle: data.metaTitle?.trim() || null,
+        metaDescription: data.metaDescription?.trim() || null,
+        ogImage: data.ogImage?.trim() || null,
+        authorId: user.id,
+        publishedAt: data.status === 'PUBLISHED' ? new Date() : null,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    revalidatePath('/admin/collections/pages');
+
+    return {
+      success: true,
+      data: page,
+    };
+  } catch (error) {
+    console.error('Error creating page:', error);
+    return {
+      success: false,
+      error: 'Failed to create page',
       details: error,
     };
   }
