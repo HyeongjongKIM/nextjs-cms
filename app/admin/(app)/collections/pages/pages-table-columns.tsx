@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import type { PageTableData } from './actions';
+import { DeletePageDialog } from './delete-page-dialog';
+import { RestorePageDialog } from './restore-page-dialog';
 
 const STATUS_CONFIG = {
   DRAFT: { label: 'Draft', color: 'bg-yellow-100 text-yellow-800' },
@@ -215,15 +217,13 @@ export const createPageColumns = (): ColumnDef<PageTableData>[] => [
             {!isDeleted && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
-                  Delete page
-                </DropdownMenuItem>
+                <DeletePageDialog pageId={page.id} pageTitle={page.title} />
               </>
             )}
             {isDeleted && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Restore page</DropdownMenuItem>
+                <RestorePageDialog pageId={page.id} pageTitle={page.title} />
               </>
             )}
           </DropdownMenuContent>
